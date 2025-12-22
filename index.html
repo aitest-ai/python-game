@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>整合 GenAI 遊戲設計學習系統 (V19.1 Chat Scroll Fix)</title>
+    <title>整合 GenAI 遊戲設計學習系統 (V19.3 Ultimate Complete)</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -10,13 +10,14 @@
 
     <style>
         /* =========================================
-           V19.1 樣式表
+           V19.3 完整樣式表
            ========================================= */
         :root { --bg-color: #f4f7f6; --panel-bg: #ffffff; --text: #2c3e50; --border: #e0e0e0; --accent: #5dade2; --accent-hover: #3498db; --chat-header: #eef2f5; --chat-user-bg: #fdf6e3; --chat-ai-bg: #ffffff; --btn-scamper-bg: #e8e4d9; --btn-scamper-text: #5d5648; }
         @font-face { font-family: 'Iansui'; font-style: normal; font-weight: 400; font-display: swap; src: url('https://cdn.jsdelivr.net/fontsource/fonts/iansui@latest/chinese-traditional-400-normal.woff2') format('woff2'); }
         
         body { background: var(--bg-color); color: var(--text); font-family: 'Iansui','Microsoft JhengHei', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
+        /* 頂部導航列 */
         .top-bar {
             background: #fff; border-bottom: 1px solid var(--border); padding: 10px 30px;
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
@@ -24,8 +25,10 @@
         .brand { font-size: 1.2em; font-weight: bold; color: #34495e; display: flex; align-items: center; gap: 10px; }
         .brand-icon { width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9em; }
 
+        /* 主內容區 */
         .main-container { flex: 1; display: flex; flex-direction: column; padding: 20px 40px; overflow: hidden; position: relative; }
 
+        /* 分頁導航 */
         .nav-tabs { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 0; }
         .tab-btn { background: transparent; border: none; color: #95a5a6; padding: 10px 5px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; border-bottom: 3px solid transparent; margin-bottom: -2px; font-family: 'Iansui'; }
         .tab-btn:hover { color: var(--accent); }
@@ -34,6 +37,7 @@
         .content-area { display: none; flex: 1; flex-direction: column; overflow-y: auto; height: 100%; }
         .content-area.active { display: flex; }
 
+        /* 發想區佈局 */
         .ideate-layout { display: flex; height: 100%; gap: 25px; }
         .note-panel { flex: 1; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .note-title { font-size: 1.2em; font-weight: bold; color: #444; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -41,15 +45,15 @@
         .note-input { flex: 1; border: none; resize: none; font-size: 1.1em; line-height: 1.8; color: #555; outline: none; font-family: 'Iansui'; background: url('data:image/svg+xml;utf8,<svg width="100" height="30" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="29" x2="100" y2="29" stroke="%23f0f0f0" stroke-width="1"/></svg>'); background-attachment: local; transition: background-color 0.3s; }
         .note-input.highlight { background-color: #fffde7; }
 
+        /* 聊天區 (V19.1 Scroll Fix) */
         .chat-panel { width: 420px; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .chat-header { background: var(--chat-header); padding: 15px 20px; font-weight: bold; color: #555; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
         .chat-badge { background: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; color: #888; border: 1px solid #ddd; }
         
-        /* ★★★ V19.1 修正：將 ID 對應正確，確保 overflow-y 生效 ★★★ */
         #ideate-chat-box { 
             flex: 1; 
             padding: 20px; 
-            overflow-y: auto; /* 關鍵：允許垂直捲動 */
+            overflow-y: auto; /* Fix: Enable Scroll */
             background: #fdfdfd; 
             display: flex; 
             flex-direction: column; 
@@ -62,6 +66,7 @@
         .msg.ai { background: var(--chat-ai-bg); color: #333; align-self: flex-start; border: 1px solid var(--chat-ai-border); border-top-left-radius: 2px; }
         .msg-label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #666; opacity: 0.8; }
         
+        /* 智慧筆記按鈕 */
         .btn-adopt { 
             display: block; margin-top: 8px; font-size: 0.85em; padding: 4px 10px; 
             background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; border-radius: 4px; 
@@ -77,6 +82,7 @@
         .chat-input { flex: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 0.95em; background: #f9f9f9; }
         .chat-input:focus { background: #fff; border-color: var(--accent); }
         
+        /* 實作區佈局 */
         .workspace-grid { display: grid; grid-template-columns: 1fr 480px; gap: 25px; height: 100%; }
         .ide-container { display: flex; flex-direction: column; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .ide-toolbar { background: #f4f4f4; padding: 8px 15px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
@@ -84,6 +90,7 @@
         .code-area { flex: 1; background: #ffffff; color: #333; padding: 15px; border: none; font-family: 'Consolas', 'Monaco', monospace; resize: none; font-size: 15px; line-height: 1.6; outline: none; }
         .console-area { height: 120px; background: #f8f9fa; color: #555; padding: 10px; font-family: monospace; overflow-y: auto; border-top: 1px solid #ccc; font-size: 0.9em; }
         
+        /* Game Preview & Fullscreen */
         .game-preview-container { 
             display: flex; flex-direction: column; gap: 10px; 
             background: #f4f7f6; transition: background 0.3s;
@@ -108,6 +115,7 @@
 
         .asset-box { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; flex: 1; display: flex; flex-direction: column; }
         
+        /* Buttons */
         .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(93, 173, 226, 0.4); }
         .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
         .btn-primary:disabled { background: #bdc3c7; box-shadow: none; cursor: not-allowed; }
@@ -123,7 +131,7 @@
     
     <div id="login-overlay" class="overlay">
         <h1 style="margin-bottom: 5px; color:#2c3e50;">整合 GenAI 遊戲設計學習系統</h1>
-        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V19.1 Chat Scroll Fix</div>
+        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V19.3 Ultimate Complete</div>
         <input type="text" id="student-id" placeholder="請輸入學號" style="padding:12px; width:280px; text-align:center; border:1px solid #ccc; border-radius:6px; margin-bottom:15px; font-size:1.1em; outline:none;">
         <button id="btn-start" class="btn-primary" style="width:300px; padding:12px;" onclick="startSystem()">啟動系統 (含外部庫) ▶</button>
         <div id="loading-msg" style="margin-top:10px; color:#999; font-size:0.8em;">準備載入 Numpy & PIL...</div>
@@ -161,9 +169,7 @@
                 </div>
                 <div class="chat-panel">
                     <div class="chat-header"><span>🤝 AI 創意夥伴</span><span class="chat-badge">Online</span></div>
-                    
                     <div id="ideate-chat-box"><div class="msg ai"><span class="msg-label">🤖 夥伴</span>嗨！我是你的設計夥伴。我們可以一起用 SCAMPER 方法來腦力激盪。點擊下方按鈕開始吧！</div></div>
-                    
                     <div class="chat-footer">
                         <div class="scamper-group">
                             <button class="scamper-btn" onclick="triggerScamper('Substitute')">📄 替代</button>
@@ -306,13 +312,16 @@ asyncio.run(main())
 
     <script>
         // ============================================
-        // Config & Backend (V19.1)
+        // V19.3 Config Area (Real AI Integration)
         // ============================================
         const SYSTEM_CONFIG = {
             // ★★★ 請修改這裡：填入您的 GAS 網頁應用程式網址 ★★★
             GAS_URL: "https://script.google.com/macros/s/AKfycbyBmndXGSXT7GjAqoS8oPn4BO9GAg6AhgA8Rpe3FQfaN465gDS_1KoYb_exAIFGXGXg/exec", 
             STUDENT_ID: ""
         };
+
+        // 全域對話歷史紀錄 (V19.2 Feature)
+        let chatHistory = [];
 
         class BackendService {
             constructor() {}
@@ -337,27 +346,33 @@ asyncio.run(main())
                 });
             }
 
-            async callAI(prompt) {
+            async callAI(newMsg, role='user') {
                 if (!this._checkConfig()) return "系統未設定 API 網址";
                 
+                // V19.2: 更新本地歷史 & 取得筆記背景
+                chatHistory.push({ role: role, text: newMsg });
+                const currentNotes = document.getElementById('design-notes').value;
+
                 try {
                     const response = await fetch(SYSTEM_CONFIG.GAS_URL, {
                         method: 'POST',
                         body: JSON.stringify({
                             action: "chatAI",
-                            prompt: prompt
+                            history: chatHistory,
+                            context: currentNotes
                         })
                     });
                     
                     const data = await response.json();
                     if(data.status === "success") {
+                        chatHistory.push({ role: 'ai', text: data.text });
                         return data.text;
                     } else {
                         return "AI 連線錯誤: " + data.message;
                     }
                 } catch (e) {
                     console.error(e);
-                    return "連線失敗，請檢查 GAS 部署設定。";
+                    return "連線失敗，請檢查網路或 GAS 設定。";
                 }
             }
 
@@ -372,7 +387,7 @@ asyncio.run(main())
         const backend = new BackendService();
 
         // ============================================
-        // Chat & Notes Logic
+        // V19.3 UI Logic
         // ============================================
         
         function handleNoteChange() {
@@ -383,20 +398,24 @@ asyncio.run(main())
         }
 
         async function triggerScamper(type) {
-            appendMsg('user', `請給我關於「${type}」的 SCAMPER 建議。`);
+            const promptMap = {
+                'Substitute': "我們來試試 SCAMPER 的「替代 (Substitute)」。針對我目前的構想，你有什麼有趣的替代建議嗎？",
+                'Combine': "如果是「合併 (Combine)」呢？有什麼元素可以結合在一起產生新玩法？",
+                'Reverse': "讓我們試試「逆向 (Reverse)」思考。如果把遊戲規則反過來會怎樣？",
+                'Modify': "關於「修改 (Modify)」，如果要讓遊戲體驗更誇張或更特別，可以調整什麼參數？"
+            };
+            const userPrompt = promptMap[type] || `請針對 ${type} 給我建議。`;
+            
+            appendMsg('user', `🤔 我們來討論一下 **${type}** 的可能性...`);
             const loadingId = appendMsg('ai', '思考中... <span class="loading-dots">●●●</span>');
             
-            const context = document.getElementById('design-notes').value || "我正在設計一個遊戲";
-            const prompt = `目前的遊戲構想是：「${context}」。\n請針對 SCAMPER 中的「${type}」面向，給我 3 個具體的創意修改建議。`;
-            
-            const reply = await backend.callAI(prompt);
+            const reply = await backend.callAI(userPrompt, 'user');
             
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴 (Gemini)</span>
                 ${marked.parse(reply)}
-                <button class="btn-adopt" onclick="adoptIdea(this)">📝 將此建議加入筆記</button>
+                <button class="btn-adopt" onclick="adoptIdea(this)">📝 採納此點子</button>
             `;
-            // Scroll Logic
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -411,13 +430,12 @@ asyncio.run(main())
             
             const loadingId = appendMsg('ai', '思考中...');
             
-            const reply = await backend.callAI(text);
+            const reply = await backend.callAI(text, 'user');
             
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴</span>
                 ${marked.parse(reply)}
             `;
-            // Scroll Logic
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -429,22 +447,26 @@ asyncio.run(main())
             div.id = 'msg-' + Date.now();
             div.innerHTML = role === 'user' ? `<span class="msg-label">我</span>${html}` : html;
             box.appendChild(div);
-            // Auto Scroll
             box.scrollTop = box.scrollHeight;
             return div.id;
         }
 
         function adoptIdea(btn) {
-            const text = btn.parentElement.innerText.replace("🤖 夥伴 (Gemini)", "").replace("📝 將此建議加入筆記", "").trim();
+            let content = btn.parentElement.innerText;
+            content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 採納此點子", "").trim();
+            
             const noteArea = document.getElementById('design-notes');
-            noteArea.value += `\n\n[AI 建議] ${text}`;
+            noteArea.value += `\n\n- ${content}`;
             noteArea.classList.add('highlight');
             setTimeout(() => noteArea.classList.remove('highlight'), 500);
             handleNoteChange();
+            
+            // Context update
+            chatHistory.push({ role: 'user', text: `我採納了這個點子：${content}。請繼續。` });
         }
 
         // ============================================
-        // Pygame Runtime (V19.1)
+        // V19.3 Pygame Runtime (Full Shim)
         // ============================================
         let pyodide = null;
         let isSystemReady = false;
@@ -473,7 +495,7 @@ asyncio.run(main())
             SYSTEM_CONFIG.STUDENT_ID = sid;
 
             document.getElementById('login-overlay').style.display = 'none';
-            log("系統啟動中 (V19.1)...");
+            log("系統啟動中 (V19.3 Ultimate)...");
             document.getElementById('loading-msg').style.display = 'block';
             
             try {
@@ -515,6 +537,7 @@ import math
 import time
 import asyncio
 
+# Mock Network
 requests = types.ModuleType("requests")
 requests.get = lambda u: types.SimpleNamespace(status_code=200, text="Mock", json=lambda: {})
 sys.modules["requests"] = requests
@@ -522,10 +545,12 @@ socket = types.ModuleType("socket")
 socket.socket = lambda *a: None
 sys.modules["socket"] = socket
 
+# Pygame Base
 pygame = types.ModuleType("pygame")
 sys.modules["pygame"] = pygame
 pygame._active_gen = 0 
 
+# Async Control
 if not hasattr(asyncio, '_orig_sleep'): asyncio._orig_sleep = asyncio.sleep
 async def _monkey_sleep(delay=0, result=None):
     await asyncio._orig_sleep(delay, result)
@@ -539,6 +564,7 @@ async def _wait_frame(fps):
 pygame._web_sync = _web_sync
 pygame.time_wait_frame = _wait_frame
 
+# Constants
 pygame.QUIT = 12
 pygame.KEYDOWN = 2
 pygame.KEYUP = 3
@@ -551,6 +577,7 @@ pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN = "ArrowLeft", "ArrowR
 pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN = "Space", "Escape", "Enter"
 for c in range(97, 123): setattr(pygame, f"K_{chr(c)}", f"Key{chr(c).upper()}")
 
+# V16.0 Rect Fix
 class Rect:
     def __init__(self, x, y, w, h): self.x, self.y, self.w, self.h = x, y, w, h
     @property
@@ -605,6 +632,7 @@ class Rect:
     def copy(self): return Rect(self.x, self.y, self.w, self.h)
 pygame.Rect = Rect
 
+# V16.2 Surface Fix
 class Surface:
     def __init__(self, size, flags=0, depth=0): 
         if isinstance(size, (tuple, list)): self.width, self.height = size
