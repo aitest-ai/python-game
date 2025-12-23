@@ -2,14 +2,16 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>整合 GenAI 遊戲設計學習系統 (V22.0 Precision Control)</title>
+    <title>整合 GenAI 遊戲設計學習系統 (V23.0 Creator Notes)</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* (樣式維持 V19.4) */
+        /* =========================================
+           V23.0 樣式表 (維持 V19.4 風格)
+           ========================================= */
         :root { --bg-color: #f4f7f6; --panel-bg: #ffffff; --text: #2c3e50; --border: #e0e0e0; --accent: #5dade2; --accent-hover: #3498db; --chat-header: #eef2f5; --chat-user-bg: #fdf6e3; --chat-ai-bg: #ffffff; --btn-scamper-bg: #e8e4d9; --btn-scamper-text: #5d5648; }
         @font-face { font-family: 'Iansui'; font-style: normal; font-weight: 400; font-display: swap; src: url('https://cdn.jsdelivr.net/fontsource/fonts/iansui@latest/chinese-traditional-400-normal.woff2') format('woff2'); }
         body { background: var(--bg-color); color: var(--text); font-family: 'Iansui','Microsoft JhengHei', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -74,7 +76,7 @@
     
     <div id="login-overlay" class="overlay">
         <h1 style="margin-bottom: 5px; color:#2c3e50;">整合 GenAI 遊戲設計學習系統</h1>
-        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V22.0 Precision Control</div>
+        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V23.0 Creator Notes</div>
         <input type="text" id="student-id" placeholder="請輸入學號" style="padding:12px; width:280px; text-align:center; border:1px solid #ccc; border-radius:6px; margin-bottom:15px; font-size:1.1em; outline:none;">
         <button id="btn-start" class="btn-primary" style="width:300px; padding:12px;" onclick="startSystem()">啟動系統 (含外部庫) ▶</button>
         <div id="loading-msg" style="margin-top:10px; color:#999; font-size:0.8em;">準備載入 Numpy & PIL...</div>
@@ -255,11 +257,11 @@ asyncio.run(main())
 
     <script>
         // ============================================
-        // V22.0 Config Area (Real AI Integration)
+        // V23.0 Config Area (Creator Note Logic)
         // ============================================
         const SYSTEM_CONFIG = {
             // ★★★ 請修改這裡：填入您的 GAS 網頁應用程式網址 ★★★
-            GAS_URL: "https://script.google.com/macros/s/AKfycbwUxzXkyQOhS7tTBfIMklR-ZAWUoPPMOFB45vREoPOyfeJhSzLFezpoldy79ZB5vmTc/exec", 
+            GAS_URL: "https://script.google.com/macros/s/AKfycbwquI6Ft694DgUmEYo9Avuc-95CihLu4PALD8KsrGwk0hTKzxvJuxbQWWICZp8cow7u/exec", 
             STUDENT_ID: ""
         };
 
@@ -271,10 +273,16 @@ asyncio.run(main())
             async saveNotes(text) {
                 if (!this._checkConfig()) return;
                 document.getElementById('save-status').innerText = "同步中...";
+                
                 fetch(SYSTEM_CONFIG.GAS_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: "saveNote", studentId: SYSTEM_CONFIG.STUDENT_ID, note: text })
+                    body: JSON.stringify({
+                        action: "saveNote",
+                        studentId: SYSTEM_CONFIG.STUDENT_ID,
+                        note: text
+                    })
                 }).then(() => {
                     document.getElementById('save-status').innerText = "已同步";
                 }).catch(e => {
@@ -282,7 +290,6 @@ asyncio.run(main())
                 });
             }
 
-            // V22.0: 傳遞 scamperType 讓 GAS 分流處理
             async callAI(newMsg, role='user', scamperType=null) {
                 if (!this._checkConfig()) return "系統未設定 API 網址";
                 
@@ -296,7 +303,7 @@ asyncio.run(main())
                             action: "chatAI",
                             history: chatHistory,
                             context: currentNotes,
-                            scamperType: scamperType // null for normal chat, string for buttons
+                            scamperType: scamperType // V22.0: Pass button type
                         })
                     });
                     
@@ -313,7 +320,7 @@ asyncio.run(main())
                 }
             }
 
-            // V22.0: 結構化摘要
+            // V23.0: 結構化摘要 (Creator-Centric)
             async summarize(textToSummarize) {
                 if (!this._checkConfig()) return textToSummarize;
                 try {
@@ -340,7 +347,7 @@ asyncio.run(main())
         const backend = new BackendService();
 
         // ============================================
-        // V22.0 UI Logic
+        // UI Logic
         // ============================================
         
         function handleNoteChange() {
@@ -351,11 +358,9 @@ asyncio.run(main())
         }
 
         async function triggerScamper(type) {
-            // V22.0 Fix: 不在對話框顯示 markdown，改用 HTML 粗體
             appendMsg('user', `🤔 我們來討論一下 <b>${type}</b> ...`);
             const loadingId = appendMsg('ai', '思考中...');
             
-            // 傳送 scamperType，後端會強制插入引導指令
             const reply = await backend.callAI("", 'user', type);
             
             document.getElementById(loadingId).innerHTML = `
@@ -377,7 +382,6 @@ asyncio.run(main())
             
             const loadingId = appendMsg('ai', '思考中...');
             
-            // 一般對話：scamperType = null
             const reply = await backend.callAI(text, 'user', null);
             
             document.getElementById(loadingId).innerHTML = `
@@ -407,7 +411,7 @@ asyncio.run(main())
             let content = btn.parentElement.innerText;
             content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 加入筆記 (自動整理)", "").trim();
             
-            // V22.0: 呼叫後端進行摘要
+            // Call V23.0 Summarizer
             const summarizedText = await backend.summarize(content);
 
             const noteArea = document.getElementById('design-notes');
@@ -451,7 +455,7 @@ asyncio.run(main())
             SYSTEM_CONFIG.STUDENT_ID = sid;
 
             document.getElementById('login-overlay').style.display = 'none';
-            log("系統啟動中 (V22.0)...");
+            log("系統啟動中 (V23.0 Ultimate)...");
             document.getElementById('loading-msg').style.display = 'block';
             
             try {
