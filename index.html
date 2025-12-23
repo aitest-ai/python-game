@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>整合 GenAI 遊戲設計學習系統 (V19.3 Ultimate Complete)</title>
+    <title>整合 GenAI 遊戲設計學習系統 (V20.0 Smart Context)</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -10,7 +10,7 @@
 
     <style>
         /* =========================================
-           V19.3 完整樣式表
+           V20.0 樣式表
            ========================================= */
         :root { --bg-color: #f4f7f6; --panel-bg: #ffffff; --text: #2c3e50; --border: #e0e0e0; --accent: #5dade2; --accent-hover: #3498db; --chat-header: #eef2f5; --chat-user-bg: #fdf6e3; --chat-ai-bg: #ffffff; --btn-scamper-bg: #e8e4d9; --btn-scamper-text: #5d5648; }
         @font-face { font-family: 'Iansui'; font-style: normal; font-weight: 400; font-display: swap; src: url('https://cdn.jsdelivr.net/fontsource/fonts/iansui@latest/chinese-traditional-400-normal.woff2') format('woff2'); }
@@ -45,20 +45,14 @@
         .note-input { flex: 1; border: none; resize: none; font-size: 1.1em; line-height: 1.8; color: #555; outline: none; font-family: 'Iansui'; background: url('data:image/svg+xml;utf8,<svg width="100" height="30" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="29" x2="100" y2="29" stroke="%23f0f0f0" stroke-width="1"/></svg>'); background-attachment: local; transition: background-color 0.3s; }
         .note-input.highlight { background-color: #fffde7; }
 
-        /* 聊天區 (V19.1 Scroll Fix) */
+        /* 聊天區 */
         .chat-panel { width: 420px; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .chat-header { background: var(--chat-header); padding: 15px 20px; font-weight: bold; color: #555; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
         .chat-badge { background: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; color: #888; border: 1px solid #ddd; }
         
         #ideate-chat-box { 
-            flex: 1; 
-            padding: 20px; 
-            overflow-y: auto; /* Fix: Enable Scroll */
-            background: #fdfdfd; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            scroll-behavior: smooth;
+            flex: 1; padding: 20px; overflow-y: auto; background: #fdfdfd; 
+            display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth;
         }
         
         .msg { padding: 12px 18px; border-radius: 12px; max-width: 85%; line-height: 1.5; font-size: 0.95em; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
@@ -66,7 +60,6 @@
         .msg.ai { background: var(--chat-ai-bg); color: #333; align-self: flex-start; border: 1px solid var(--chat-ai-border); border-top-left-radius: 2px; }
         .msg-label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #666; opacity: 0.8; }
         
-        /* 智慧筆記按鈕 */
         .btn-adopt { 
             display: block; margin-top: 8px; font-size: 0.85em; padding: 4px 10px; 
             background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; border-radius: 4px; 
@@ -82,7 +75,7 @@
         .chat-input { flex: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 0.95em; background: #f9f9f9; }
         .chat-input:focus { background: #fff; border-color: var(--accent); }
         
-        /* 實作區佈局 */
+        /* 實作區 */
         .workspace-grid { display: grid; grid-template-columns: 1fr 480px; gap: 25px; height: 100%; }
         .ide-container { display: flex; flex-direction: column; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .ide-toolbar { background: #f4f4f4; padding: 8px 15px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
@@ -131,7 +124,7 @@
     
     <div id="login-overlay" class="overlay">
         <h1 style="margin-bottom: 5px; color:#2c3e50;">整合 GenAI 遊戲設計學習系統</h1>
-        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V19.3 Ultimate Complete</div>
+        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V20.0 Smart Context</div>
         <input type="text" id="student-id" placeholder="請輸入學號" style="padding:12px; width:280px; text-align:center; border:1px solid #ccc; border-radius:6px; margin-bottom:15px; font-size:1.1em; outline:none;">
         <button id="btn-start" class="btn-primary" style="width:300px; padding:12px;" onclick="startSystem()">啟動系統 (含外部庫) ▶</button>
         <div id="loading-msg" style="margin-top:10px; color:#999; font-size:0.8em;">準備載入 Numpy & PIL...</div>
@@ -169,7 +162,7 @@
                 </div>
                 <div class="chat-panel">
                     <div class="chat-header"><span>🤝 AI 創意夥伴</span><span class="chat-badge">Online</span></div>
-                    <div id="ideate-chat-box"><div class="msg ai"><span class="msg-label">🤖 夥伴</span>嗨！我是你的設計夥伴。我們可以一起用 SCAMPER 方法來腦力激盪。點擊下方按鈕開始吧！</div></div>
+                    <div id="ideate-chat-box"><div class="msg ai"><span class="msg-label">🤖 夥伴</span>嗨！我是你的設計夥伴。如果你還沒有想法，點擊下方按鈕，我可以幫你發想主題喔！</div></div>
                     <div class="chat-footer">
                         <div class="scamper-group">
                             <button class="scamper-btn" onclick="triggerScamper('Substitute')">📄 替代</button>
@@ -312,15 +305,15 @@ asyncio.run(main())
 
     <script>
         // ============================================
-        // V19.3 Config Area (Real AI Integration)
+        // V20.0 Config Area
         // ============================================
         const SYSTEM_CONFIG = {
             // ★★★ 請修改這裡：填入您的 GAS 網頁應用程式網址 ★★★
-            GAS_URL: "https://script.google.com/macros/s/AKfycbyBmndXGSXT7GjAqoS8oPn4BO9GAg6AhgA8Rpe3FQfaN465gDS_1KoYb_exAIFGXGXg/exec", 
+            GAS_URL: "https://script.google.com/macros/s/AKfycbz0rIkzMEdbyNXHDmKzYCYrGNCOIsd_byWTngWNaUKyg9fMSWj_tXhzYgvDPrnXtmAq/exec", 
             STUDENT_ID: ""
         };
 
-        // 全域對話歷史紀錄 (V19.2 Feature)
+        // 全域對話歷史紀錄
         let chatHistory = [];
 
         class BackendService {
@@ -359,7 +352,7 @@ asyncio.run(main())
                         body: JSON.stringify({
                             action: "chatAI",
                             history: chatHistory,
-                            context: currentNotes
+                            context: currentNotes // V20.0 讓 AI 知道筆記狀態
                         })
                     });
                     
@@ -387,7 +380,7 @@ asyncio.run(main())
         const backend = new BackendService();
 
         // ============================================
-        // V19.3 UI Logic
+        // V20.0 UI Logic: Smart Context
         // ============================================
         
         function handleNoteChange() {
@@ -398,23 +391,31 @@ asyncio.run(main())
         }
 
         async function triggerScamper(type) {
-            const promptMap = {
-                'Substitute': "我們來試試 SCAMPER 的「替代 (Substitute)」。針對我目前的構想，你有什麼有趣的替代建議嗎？",
-                'Combine': "如果是「合併 (Combine)」呢？有什麼元素可以結合在一起產生新玩法？",
-                'Reverse': "讓我們試試「逆向 (Reverse)」思考。如果把遊戲規則反過來會怎樣？",
-                'Modify': "關於「修改 (Modify)」，如果要讓遊戲體驗更誇張或更特別，可以調整什麼參數？"
-            };
-            const userPrompt = promptMap[type] || `請針對 ${type} 給我建議。`;
+            const currentNotes = document.getElementById('design-notes').value.trim();
+            let aiSystemPrompt = "";
+            let userDisplayMsg = "";
+
+            // V20.0 智慧判斷：是「空白發想」還是「深度修改」？
+            if (!currentNotes) {
+                // 情境 A：學生還沒寫筆記 -> 引導發想主題
+                userDisplayMsg = `🤔 我還沒想到主題，我們用 **${type}** 來發想看看...`;
+                aiSystemPrompt = `我目前還沒有遊戲主題。請利用 SCAMPER 的「${type}」概念，隨機提議一個適合初學者的 Pygame 遊戲點子（例如貪吃蛇、打磚塊的變體）。請用引導的方式問我覺得如何。`;
+            } else {
+                // 情境 B：已有筆記 -> 針對內容進行 SCAMPER
+                userDisplayMsg = `🤔 針對目前的設計，我們來討論一下 **${type}** 的可能性...`;
+                aiSystemPrompt = `目前的遊戲構想是：「${currentNotes}」。請針對 SCAMPER 中的「${type}」面向，提出一個反直覺的、有趣的修改建議，並問我覺得這是否可行。`;
+            }
             
-            appendMsg('user', `🤔 我們來討論一下 **${type}** 的可能性...`);
-            const loadingId = appendMsg('ai', '思考中... <span class="loading-dots">●●●</span>');
+            appendMsg('user', userDisplayMsg);
+            // V20.0 Fix: Remove fullwidth dots
+            const loadingId = appendMsg('ai', '思考中...');
             
-            const reply = await backend.callAI(userPrompt, 'user');
+            const reply = await backend.callAI(aiSystemPrompt, 'user');
             
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴 (Gemini)</span>
                 ${marked.parse(reply)}
-                <button class="btn-adopt" onclick="adoptIdea(this)">📝 將此建議加入筆記</button>
+                <button class="btn-adopt" onclick="adoptIdea(this)">📝 採納此點子</button>
             `;
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -444,7 +445,7 @@ asyncio.run(main())
             const box = document.getElementById('ideate-chat-box');
             const div = document.createElement('div');
             div.className = `msg ${role}`;
-            // V19.4 Fix: Unique ID
+            // V19.4 Fix: Unique ID collision prevention
             div.id = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
             div.innerHTML = role === 'user' ? `<span class="msg-label">我</span>${html}` : html;
             box.appendChild(div);
@@ -454,7 +455,7 @@ asyncio.run(main())
 
         function adoptIdea(btn) {
             let content = btn.parentElement.innerText;
-            content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 將此建議加入筆記", "").trim();
+            content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 採納此點子", "").trim();
             
             const noteArea = document.getElementById('design-notes');
             noteArea.value += `\n\n- ${content}`;
@@ -462,12 +463,11 @@ asyncio.run(main())
             setTimeout(() => noteArea.classList.remove('highlight'), 500);
             handleNoteChange();
             
-            // Context update
             chatHistory.push({ role: 'user', text: `我採納了這個點子：${content}。請繼續。` });
         }
 
         // ============================================
-        // V19.3 Pygame Runtime (Full Shim)
+        // Pygame Runtime (Full Shim)
         // ============================================
         let pyodide = null;
         let isSystemReady = false;
@@ -496,7 +496,7 @@ asyncio.run(main())
             SYSTEM_CONFIG.STUDENT_ID = sid;
 
             document.getElementById('login-overlay').style.display = 'none';
-            log("系統啟動中 (V19.3 Ultimate)...");
+            log("系統啟動中 (V20.0)...");
             document.getElementById('loading-msg').style.display = 'block';
             
             try {
@@ -538,7 +538,6 @@ import math
 import time
 import asyncio
 
-# Mock Network
 requests = types.ModuleType("requests")
 requests.get = lambda u: types.SimpleNamespace(status_code=200, text="Mock", json=lambda: {})
 sys.modules["requests"] = requests
@@ -546,12 +545,10 @@ socket = types.ModuleType("socket")
 socket.socket = lambda *a: None
 sys.modules["socket"] = socket
 
-# Pygame Base
 pygame = types.ModuleType("pygame")
 sys.modules["pygame"] = pygame
 pygame._active_gen = 0 
 
-# Async Control
 if not hasattr(asyncio, '_orig_sleep'): asyncio._orig_sleep = asyncio.sleep
 async def _monkey_sleep(delay=0, result=None):
     await asyncio._orig_sleep(delay, result)
@@ -565,7 +562,6 @@ async def _wait_frame(fps):
 pygame._web_sync = _web_sync
 pygame.time_wait_frame = _wait_frame
 
-# Constants
 pygame.QUIT = 12
 pygame.KEYDOWN = 2
 pygame.KEYUP = 3
@@ -578,7 +574,6 @@ pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN = "ArrowLeft", "ArrowR
 pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_RETURN = "Space", "Escape", "Enter"
 for c in range(97, 123): setattr(pygame, f"K_{chr(c)}", f"Key{chr(c).upper()}")
 
-# V16.0 Rect Fix
 class Rect:
     def __init__(self, x, y, w, h): self.x, self.y, self.w, self.h = x, y, w, h
     @property
@@ -633,7 +628,6 @@ class Rect:
     def copy(self): return Rect(self.x, self.y, self.w, self.h)
 pygame.Rect = Rect
 
-# V16.2 Surface Fix
 class Surface:
     def __init__(self, size, flags=0, depth=0): 
         if isinstance(size, (tuple, list)): self.width, self.height = size
