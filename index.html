@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>整合 GenAI 遊戲設計學習系統 (V23.0 Creator Notes)</title>
+    <title>整合 GenAI 遊戲設計學習系統 (V23.1 Logic Fix)</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -10,7 +10,7 @@
 
     <style>
         /* =========================================
-           V23.0 樣式表 (維持 V19.4 風格)
+           V23.1 樣式表 (與 V19.4/V23.0 相同)
            ========================================= */
         :root { --bg-color: #f4f7f6; --panel-bg: #ffffff; --text: #2c3e50; --border: #e0e0e0; --accent: #5dade2; --accent-hover: #3498db; --chat-header: #eef2f5; --chat-user-bg: #fdf6e3; --chat-ai-bg: #ffffff; --btn-scamper-bg: #e8e4d9; --btn-scamper-text: #5d5648; }
         @font-face { font-family: 'Iansui'; font-style: normal; font-weight: 400; font-display: swap; src: url('https://cdn.jsdelivr.net/fontsource/fonts/iansui@latest/chinese-traditional-400-normal.woff2') format('woff2'); }
@@ -76,7 +76,7 @@
     
     <div id="login-overlay" class="overlay">
         <h1 style="margin-bottom: 5px; color:#2c3e50;">整合 GenAI 遊戲設計學習系統</h1>
-        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V23.0 Creator Notes</div>
+        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V23.1 Logic Fix (Clean Chat)</div>
         <input type="text" id="student-id" placeholder="請輸入學號" style="padding:12px; width:280px; text-align:center; border:1px solid #ccc; border-radius:6px; margin-bottom:15px; font-size:1.1em; outline:none;">
         <button id="btn-start" class="btn-primary" style="width:300px; padding:12px;" onclick="startSystem()">啟動系統 (含外部庫) ▶</button>
         <div id="loading-msg" style="margin-top:10px; color:#999; font-size:0.8em;">準備載入 Numpy & PIL...</div>
@@ -257,7 +257,7 @@ asyncio.run(main())
 
     <script>
         // ============================================
-        // V23.0 Config Area (Creator Note Logic)
+        // V23.1 Config Area
         // ============================================
         const SYSTEM_CONFIG = {
             // ★★★ 請修改這裡：填入您的 GAS 網頁應用程式網址 ★★★
@@ -320,7 +320,6 @@ asyncio.run(main())
                 }
             }
 
-            // V23.0: 結構化摘要 (Creator-Centric)
             async summarize(textToSummarize) {
                 if (!this._checkConfig()) return textToSummarize;
                 try {
@@ -347,7 +346,7 @@ asyncio.run(main())
         const backend = new BackendService();
 
         // ============================================
-        // UI Logic
+        // V23.1 UI Logic: Logic Fix (No fake history)
         // ============================================
         
         function handleNoteChange() {
@@ -363,10 +362,12 @@ asyncio.run(main())
             
             const reply = await backend.callAI("", 'user', type);
             
+            // ★★★ V23.1: 隱藏原始文字在 data-raw-content 中，避免 innerText 抓到髒資料 ★★★
+            const safeContent = encodeURIComponent(reply);
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴 (Gemini)</span>
                 ${marked.parse(reply)}
-                <button class="btn-adopt" onclick="adoptIdea(this)">📝 加入筆記 (自動整理)</button>
+                <button class="btn-adopt" data-raw-content="${safeContent}" onclick="adoptIdea(this)">📝 加入筆記 (自動整理)</button>
             `;
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -384,10 +385,11 @@ asyncio.run(main())
             
             const reply = await backend.callAI(text, 'user', null);
             
+            const safeContent = encodeURIComponent(reply);
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴</span>
                 ${marked.parse(reply)}
-                <button class="btn-adopt" onclick="adoptIdea(this)">📝 加入筆記 (自動整理)</button>
+                <button class="btn-adopt" data-raw-content="${safeContent}" onclick="adoptIdea(this)">📝 加入筆記 (自動整理)</button>
             `;
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -408,21 +410,32 @@ asyncio.run(main())
             btn.disabled = true;
             btn.innerText = "🧠 AI 整理中...";
 
-            let content = btn.parentElement.innerText;
-            content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 加入筆記 (自動整理)", "").trim();
-            
-            // Call V23.0 Summarizer
-            const summarizedText = await backend.summarize(content);
+            try {
+                // ★★★ V23.1: 從屬性讀取乾淨文字，而非 innerText ★★★
+                let content = decodeURIComponent(btn.getAttribute('data-raw-content'));
+                
+                // 呼叫後端摘要
+                const summarizedText = await backend.summarize(content);
 
-            const noteArea = document.getElementById('design-notes');
-            noteArea.value += `\n${summarizedText}`;
-            noteArea.classList.add('highlight');
-            
-            btn.innerText = "✅ 已加入";
-            setTimeout(() => { noteArea.classList.remove('highlight'); }, 500);
-            
-            handleNoteChange();
-            chatHistory.push({ role: 'user', text: `我已將這個點子加入筆記：${summarizedText}。請繼續。` });
+                const noteArea = document.getElementById('design-notes');
+                noteArea.value += `\n${summarizedText}`;
+                noteArea.classList.add('highlight');
+                
+                btn.innerText = "✅ 已加入";
+                setTimeout(() => { noteArea.classList.remove('highlight'); }, 500);
+                
+                handleNoteChange();
+                
+                // ★★★ V23.1: 移除 chatHistory.push 避免 AI 幻覺 ★★★
+                // (不需要告訴 AI 我存了筆記，反正它每次都會讀最新的 Context)
+
+            } catch (e) {
+                console.error(e);
+                btn.innerText = "❌ 失敗";
+            } finally {
+                // 如果失敗，允許重試；如果成功，保持已加入狀態
+                if (btn.innerText.includes("失敗")) btn.disabled = false;
+            }
         }
 
         // ============================================
@@ -455,7 +468,7 @@ asyncio.run(main())
             SYSTEM_CONFIG.STUDENT_ID = sid;
 
             document.getElementById('login-overlay').style.display = 'none';
-            log("系統啟動中 (V23.0 Ultimate)...");
+            log("系統啟動中 (V23.1)...");
             document.getElementById('loading-msg').style.display = 'block';
             
             try {
