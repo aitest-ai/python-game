@@ -2,14 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>整合 GenAI 遊戲設計學習系統 (V21.0 Structured Thinking)</title>
+    <title>整合 GenAI 遊戲設計學習系統 (V22.0 Precision Control)</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* (樣式維持 V19.4 風格) */
+        /* (樣式維持 V19.4) */
         :root { --bg-color: #f4f7f6; --panel-bg: #ffffff; --text: #2c3e50; --border: #e0e0e0; --accent: #5dade2; --accent-hover: #3498db; --chat-header: #eef2f5; --chat-user-bg: #fdf6e3; --chat-ai-bg: #ffffff; --btn-scamper-bg: #e8e4d9; --btn-scamper-text: #5d5648; }
         @font-face { font-family: 'Iansui'; font-style: normal; font-weight: 400; font-display: swap; src: url('https://cdn.jsdelivr.net/fontsource/fonts/iansui@latest/chinese-traditional-400-normal.woff2') format('woff2'); }
         body { background: var(--bg-color); color: var(--text); font-family: 'Iansui','Microsoft JhengHei', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -39,7 +39,7 @@
         .msg-label { display: block; font-weight: bold; font-size: 0.85em; margin-bottom: 5px; color: #666; opacity: 0.8; }
         .btn-adopt { display: block; margin-top: 8px; font-size: 0.85em; padding: 4px 10px; background: #e1f5fe; color: #0277bd; border: 1px solid #b3e5fc; border-radius: 4px; cursor: pointer; text-align: center; transition: 0.2s; }
         .btn-adopt:hover { background: #b3e5fc; }
-        .btn-adopt:disabled { background: #eee; color: #999; cursor: wait; border-color: #ddd; } /* V21.0 Loading Style */
+        .btn-adopt:disabled { background: #eee; color: #999; cursor: wait; }
         .chat-footer { padding: 15px; background: #fff; border-top: 1px solid var(--border); }
         .scamper-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .scamper-btn { background: var(--btn-scamper-bg); color: var(--btn-scamper-text); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
@@ -74,7 +74,7 @@
     
     <div id="login-overlay" class="overlay">
         <h1 style="margin-bottom: 5px; color:#2c3e50;">整合 GenAI 遊戲設計學習系統</h1>
-        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V21.0 Structured Thinking</div>
+        <div style="background:#f0f0f0; padding:5px 15px; border-radius:20px; font-size:0.9em; margin-bottom:30px; color:#666; border:1px solid #ccc;">V22.0 Precision Control</div>
         <input type="text" id="student-id" placeholder="請輸入學號" style="padding:12px; width:280px; text-align:center; border:1px solid #ccc; border-radius:6px; margin-bottom:15px; font-size:1.1em; outline:none;">
         <button id="btn-start" class="btn-primary" style="width:300px; padding:12px;" onclick="startSystem()">啟動系統 (含外部庫) ▶</button>
         <div id="loading-msg" style="margin-top:10px; color:#999; font-size:0.8em;">準備載入 Numpy & PIL...</div>
@@ -255,34 +255,26 @@ asyncio.run(main())
 
     <script>
         // ============================================
-        // V21.0 Config Area (Structure AI Integration)
+        // V22.0 Config Area (Real AI Integration)
         // ============================================
         const SYSTEM_CONFIG = {
             // ★★★ 請修改這裡：填入您的 GAS 網頁應用程式網址 ★★★
-            GAS_URL: "https://script.google.com/macros/s/AKfycbxwM1OYY0WWcdpR8hAVGAk2Lw28O4gMkrm6hyYGACoaJTOyO5VnD_e6iTX_FrrVkhw/exec", 
+            GAS_URL: "https://script.google.com/macros/s/AKfycbwUxzXkyQOhS7tTBfIMklR-ZAWUoPPMOFB45vREoPOyfeJhSzLFezpoldy79ZB5vmTc/exec", 
             STUDENT_ID: ""
         };
 
-        // 全域對話歷史紀錄
         let chatHistory = [];
 
         class BackendService {
             constructor() {}
             
-            // 存檔功能
             async saveNotes(text) {
                 if (!this._checkConfig()) return;
                 document.getElementById('save-status').innerText = "同步中...";
-                
                 fetch(SYSTEM_CONFIG.GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: "saveNote",
-                        studentId: SYSTEM_CONFIG.STUDENT_ID,
-                        note: text
-                    })
+                    body: JSON.stringify({ action: "saveNote", studentId: SYSTEM_CONFIG.STUDENT_ID, note: text })
                 }).then(() => {
                     document.getElementById('save-status').innerText = "已同步";
                 }).catch(e => {
@@ -290,8 +282,7 @@ asyncio.run(main())
                 });
             }
 
-            // 一般對話 (SCAMPER 引導)
-            // V21.0: 傳遞 scamperType 讓 AI 知道按鈕意圖
+            // V22.0: 傳遞 scamperType 讓 GAS 分流處理
             async callAI(newMsg, role='user', scamperType=null) {
                 if (!this._checkConfig()) return "系統未設定 API 網址";
                 
@@ -305,7 +296,7 @@ asyncio.run(main())
                             action: "chatAI",
                             history: chatHistory,
                             context: currentNotes,
-                            scamperType: scamperType // V21.0 新增
+                            scamperType: scamperType // null for normal chat, string for buttons
                         })
                     });
                     
@@ -322,28 +313,18 @@ asyncio.run(main())
                 }
             }
 
-            // V21.0: 結構化摘要 (Summarize for Mind Map)
+            // V22.0: 結構化摘要
             async summarize(textToSummarize) {
                 if (!this._checkConfig()) return textToSummarize;
-                
                 try {
                     const response = await fetch(SYSTEM_CONFIG.GAS_URL, {
                         method: 'POST',
-                        body: JSON.stringify({
-                            action: "summarize",
-                            text: textToSummarize
-                        })
+                        body: JSON.stringify({ action: "summarize", text: textToSummarize })
                     });
-                    
                     const data = await response.json();
-                    if(data.status === "success") {
-                        return data.text;
-                    } else {
-                        console.error("Summary Error:", data.message);
-                        return textToSummarize; // 失敗回傳原值
-                    }
+                    if(data.status === "success") return data.text;
+                    else return textToSummarize;
                 } catch (e) {
-                    console.error(e);
                     return textToSummarize;
                 }
             }
@@ -359,7 +340,7 @@ asyncio.run(main())
         const backend = new BackendService();
 
         // ============================================
-        // V21.0 UI Logic: Context Aware SCAMPER
+        // V22.0 UI Logic
         // ============================================
         
         function handleNoteChange() {
@@ -370,11 +351,11 @@ asyncio.run(main())
         }
 
         async function triggerScamper(type) {
-            // V21.0: 不再預設字串，直接把類型丟給 AI，讓 AI 根據歷史決定開場白
-            appendMsg('user', `🤔 我們來討論一下 **${type}** ...`);
+            // V22.0 Fix: 不在對話框顯示 markdown，改用 HTML 粗體
+            appendMsg('user', `🤔 我們來討論一下 <b>${type}</b> ...`);
             const loadingId = appendMsg('ai', '思考中...');
             
-            // 這裡傳送空字串作為 msg，但帶有 scamperType 參數
+            // 傳送 scamperType，後端會強制插入引導指令
             const reply = await backend.callAI("", 'user', type);
             
             document.getElementById(loadingId).innerHTML = `
@@ -396,11 +377,13 @@ asyncio.run(main())
             
             const loadingId = appendMsg('ai', '思考中...');
             
-            const reply = await backend.callAI(text, 'user');
+            // 一般對話：scamperType = null
+            const reply = await backend.callAI(text, 'user', null);
             
             document.getElementById(loadingId).innerHTML = `
                 <span class="msg-label">🤖 夥伴</span>
                 ${marked.parse(reply)}
+                <button class="btn-adopt" onclick="adoptIdea(this)">📝 加入筆記 (自動整理)</button>
             `;
             const chatBox = document.getElementById('ideate-chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -417,37 +400,29 @@ asyncio.run(main())
             return div.id;
         }
 
-        // V21.0: 智慧整理筆記
         async function adoptIdea(btn) {
-            // 1. 鎖定按鈕，防止重複點擊
             btn.disabled = true;
             btn.innerText = "🧠 AI 整理中...";
 
-            // 2. 抓取對話內容
             let content = btn.parentElement.innerText;
             content = content.replace("🤖 夥伴 (Gemini)", "").replace("📝 加入筆記 (自動整理)", "").trim();
             
-            // 3. 呼叫後端進行摘要
+            // V22.0: 呼叫後端進行摘要
             const summarizedText = await backend.summarize(content);
 
-            // 4. 寫入筆記
             const noteArea = document.getElementById('design-notes');
             noteArea.value += `\n${summarizedText}`;
             noteArea.classList.add('highlight');
             
-            // 5. 更新按鈕狀態
             btn.innerText = "✅ 已加入";
-            setTimeout(() => {
-                noteArea.classList.remove('highlight');
-                // 不解除 disabled，避免重複加入同一條
-            }, 500);
+            setTimeout(() => { noteArea.classList.remove('highlight'); }, 500);
             
             handleNoteChange();
             chatHistory.push({ role: 'user', text: `我已將這個點子加入筆記：${summarizedText}。請繼續。` });
         }
 
         // ============================================
-        // Pygame Runtime (V17.2 Full Shim)
+        // Pygame Runtime (Full Shim)
         // ============================================
         let pyodide = null;
         let isSystemReady = false;
@@ -476,7 +451,7 @@ asyncio.run(main())
             SYSTEM_CONFIG.STUDENT_ID = sid;
 
             document.getElementById('login-overlay').style.display = 'none';
-            log("系統啟動中 (V21.0)...");
+            log("系統啟動中 (V22.0)...");
             document.getElementById('loading-msg').style.display = 'block';
             
             try {
@@ -496,7 +471,7 @@ asyncio.run(main())
                     sys.stderr = WebOut()
                 `);
 
-                await initV21Pygame(); 
+                await initV19Pygame(); 
 
                 log("Python 環境就緒");
                 isSystemReady = true;
@@ -509,7 +484,7 @@ asyncio.run(main())
             }
         }
 
-        async function initV21Pygame() {
+        async function initV19Pygame() {
             const pygameShim = `
 import js
 import sys
